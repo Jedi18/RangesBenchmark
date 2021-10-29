@@ -21,5 +21,5 @@ find_package(HPX REQUIRED)
 find_package(range-v3 REQUIRED)
 
 add_executable(main main.cpp)
-target_link_libraries(main PUBLIC HPX::hpx HPX::wrap_main range-v3 range-v3-meta range-v3::meta range-v3-concepts)
+target_link_libraries(main PUBLIC HPX::hpx HPX::wrap_main range-v3 range-v3-concepts)
 target_compile_options(main PRIVATE)

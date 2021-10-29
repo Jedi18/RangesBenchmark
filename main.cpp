@@ -9,12 +9,15 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <random>
 
-//#define UNIQUE_REPLACE_IF_FOR
+std::vector<int> original;
+
+#define UNIQUE_REPLACE_IF_FOR
 //#define UNIQUE_REMOVE_IF_FOR
 //#define REVERSE_REPLACE_IF_FOR
 //#define REVERSE_REMOVE_IF_FOR
-#define FOR_EACH_TRANSFORM
+//#define FOR_EACH_TRANSFORM
 
 int main()
 {
@@ -24,11 +27,13 @@ int main()
 	const auto NUM_ITERATIONS = 50;
 
 	std::vector<std::array<double, 4>> data;
+	original = std::vector<int>(till);
+	std::generate(std::begin(original), std::end(original), [](){return std::rand() % 100;});
 
 	for (std::size_t s = start; s <= till; s *= 2)
 	{
 		std::vector<int> arr(s), res(s);
-		std::iota(std::begin(arr), std::end(arr), 1);
+		std::copy_n(original.begin(), s, arr.begin());
 
 		double seqTime = 0;
 		double parTime = 0;
@@ -36,7 +41,6 @@ int main()
 
 		for (int i = 0; i < NUM_ITERATIONS + 5; i++)
 		{
-			std::vector<int> res(s);
 			int sum = 0;
 			auto t1 = std::chrono::high_resolution_clock::now();
 #if defined(UNIQUE_REPLACE_IF_FOR)
@@ -77,9 +81,11 @@ int main()
 			seqTime += time_span1.count();
 		}
 
+		std::copy_n(original.begin(), s, arr.begin());
+		res = std::vector<int>(s);
+		
 		for (int i = 0; i < NUM_ITERATIONS + 5; i++)
 		{
-			std::vector<int> res(s);
 			int sum = 0;
 			auto t1 = std::chrono::high_resolution_clock::now();
 #if defined(UNIQUE_REPLACE_IF_FOR)
@@ -120,9 +126,11 @@ int main()
 			parTime += time_span1.count();
 		}
 
+		std::copy_n(original.begin(), s, arr.begin());
+		res = std::vector<int>(s);
+
 		for (int i = 0; i < NUM_ITERATIONS + 5; i++)
 		{
-			std::vector<int> res1(s);
 			int sum = 0;
 			auto t2 = std::chrono::high_resolution_clock::now();
 #if defined(UNIQUE_REPLACE_IF_FOR)
