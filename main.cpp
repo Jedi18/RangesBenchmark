@@ -18,6 +18,10 @@ std::vector<int> original;
 //#define REVERSE_REPLACE_IF_FOR
 //#define REVERSE_REMOVE_IF_FOR
 //#define FOR_EACH_TRANSFORM
+//#define REPLACE_IF_FOR
+//#define REMOVE_IF_FOR
+//#define UNIQUE_FOR
+//#define REVERSE_FOR
 
 int main()
 {
@@ -28,7 +32,7 @@ int main()
 
 	std::vector<std::array<double, 4>> data;
 	original = std::vector<int>(till);
-	std::generate(std::begin(original), std::end(original), [](){return std::rand() % 100;});
+	std::generate(std::begin(original), std::end(original), []() {return std::rand() % 100; });
 
 	for (std::size_t s = start; s <= till; s *= 2)
 	{
@@ -62,10 +66,19 @@ int main()
 #elif defined(FOR_EACH_TRANSFORM)
 			hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) {return elem * 2; });
 			hpx::transform(arr.begin(), arr.end(), res.begin(), [](auto const& elem) {return elem * 2; });
+#elif defined(REPLACE_IF_FOR)
+			hpx::replace_if(arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; }, 3);
+			hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+#elif defined(REMOVE_IF_FOR)
+			hpx::remove_if(arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; });
+			hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });;
+#elif defined(UNIQUE_FOR)
+			auto iter = hpx::unique(arr.begin(), arr.end());
+			hpx::for_each(arr.begin(), iter, [](auto const& elem) { return elem * 2; });
+#elif defined(REVERSE_FOR)
+			hpx::reverse(arr.begin(), arr.end());
+			hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
 #endif
-			for (auto elem : arr) {
-				sum += elem;
-			}
 			auto end1 = std::chrono::high_resolution_clock::now();
 
 			// don't consider first 5 iterations
@@ -83,7 +96,7 @@ int main()
 
 		std::copy_n(original.begin(), s, arr.begin());
 		res = std::vector<int>(s);
-		
+
 		for (int i = 0; i < NUM_ITERATIONS + 5; i++)
 		{
 			int sum = 0;
@@ -107,10 +120,19 @@ int main()
 #elif defined(FOR_EACH_TRANSFORM)
 			hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) {return elem * 2; });
 			hpx::transform(hpx::execution::par, arr.begin(), arr.end(), res.begin(), [](auto const& elem) {return elem * 2; });
+#elif defined(REPLACE_IF_FOR)
+			hpx::replace_if(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; }, 3);
+			hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+#elif defined(REMOVE_IF_FOR)
+			hpx::remove_if(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; });
+			hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+#elif defined(UNIQUE_FOR)
+			auto iter = hpx::unique(hpx::execution::par, arr.begin(), arr.end());
+			hpx::for_each(hpx::execution::par, arr.begin(), iter, [](auto const& elem) { return elem * 2; });
+#elif defined(REVERSE_FOR)
+			hpx::reverse(hpx::execution::par, arr.begin(), arr.end());
+			hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
 #endif
-			for (auto elem : arr) {
-				sum += elem;
-			}
 			auto end1 = std::chrono::high_resolution_clock::now();
 
 			// don't consider first 5 iterations
@@ -152,10 +174,19 @@ int main()
 #elif defined(FOR_EACH_TRANSFORM)
 			auto rng2 = arr | ranges::views::transform([](auto const& elem) {return elem * 2; });
 			hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) {return elem * 2; });
+#elif defined(REPLACE_IF_FOR)
+			auto rng2 = arr | ranges::views::replace_if([](auto const& elem) {return elem == 2; }, 3);
+			hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
+#elif defined(REMOVE_IF_FOR)
+			auto rng2 = arr | ranges::views::remove_if([](auto const& elem) {return elem == 2; });
+			hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
+#elif defined(UNIQUE_FOR)
+			auto rng1 = ranges::views::unique(arr);
+			hpx::ranges::for_each(hpx::execution::par, rng1, [](auto const& elem) { return elem * 2; });
+#elif defined(REVERSE_FOR)
+			auto rng1 = arr | ranges::views::reverse;
+			hpx::ranges::for_each(hpx::execution::par, rng1, [](auto const& elem) { return elem * 2; });
 #endif
-			for (auto elem : rng2) {
-				sum += elem;
-			}
 			auto end2 = std::chrono::high_resolution_clock::now();
 
 			// don't consider first 5 iterations
@@ -192,6 +223,14 @@ int main()
 	std::ofstream outputFile("reverse_remove_if_for_each.csv");
 #elif defined(FOR_EACH_TRANSFORM)
 	std::ofstream outputFile("for_each_transform.csv");
+#elif defined(REPLACE_IF_FOR)
+	std::ofstream outputFile("replace_if_for_each.csv");
+#elif defined(REMOVE_IF_FOR)
+	std::ofstream outputFile("remove_if_for_each.csv");
+#elif defined(UNIQUE_FOR)
+	std::ofstream outputFile("unique_for_each.csv");
+#elif defined(REVERSE_FOR)
+	std::ofstream outputFile("reverse_for_each.csv");
 #else
 	std::ofstream outputFile("rangeAlgo.csv");
 #endif
