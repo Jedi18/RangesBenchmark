@@ -12,7 +12,7 @@ def readCsv():
         'ranges' : 'green'
     }
 
-    folder_path = 'C:\\Users\\targe\Documents\\ranges_csv'
+    folder_path = 'C:\\Users\\targe\Documents\\ranges_csv\\ranges_benchmarks'
     folders = listdir(folder_path + '\\csv_files')
 
     for scan_file in folders:
