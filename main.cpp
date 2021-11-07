@@ -13,6 +13,7 @@
 #include <random>
 
 std::vector<int> original;
+std::size_t sum1 = 0, sum2 = 0, sum3 = 0;
 
 enum class ALGORITHM_NAME
 {
@@ -130,6 +131,12 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 
 			auto end1 = std::chrono::high_resolution_clock::now();
 
+			for (int i = 0; i < arr.size(); i++) {
+				if (rand() % 2 == 0) {
+					sum1 += arr[i];
+				}
+			}
+
 			std::chrono::duration<double> time_span1 =
 				std::chrono::duration_cast<std::chrono::duration<double>>(
 					end1 - t1);
@@ -208,6 +215,12 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 			}
 			auto end1 = std::chrono::high_resolution_clock::now();
 
+			for (int i = 0; i < arr.size(); i++) {
+				if (rand() % 2 == 0) {
+					sum2 += arr[i];
+				}
+			}
+
 			std::chrono::duration<double> time_span1 =
 				std::chrono::duration_cast<std::chrono::duration<double>>(
 					end1 - t1);
@@ -222,6 +235,7 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 		{
 			int sum = 0;
 			auto t2 = std::chrono::high_resolution_clock::now();
+			std::chrono::time_point<std::chrono::high_resolution_clock> end2;
 
 			switch (algo)
 			{
@@ -230,6 +244,13 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 				auto rng1 = ranges::views::unique(arr);
 				auto rng2 = rng1 | ranges::views::replace_if([](auto const& elem) {return elem == 2; }, 3);
 				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
+				end2 = std::chrono::high_resolution_clock::now();
+
+				for (auto const& elem : rng2) {
+					if (rand() % 2 == 0) {
+						sum3 += elem;
+					}
+				}
 				break;
 			}
 			case ALGORITHM_NAME::UNIQUE_REMOVE_IF_FOR:
@@ -237,6 +258,13 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 				auto rng1 = ranges::views::unique(arr);
 				auto rng2 = rng1 | ranges::views::remove_if([](auto const& elem) {return elem == 2; });
 				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
+				end2 = std::chrono::high_resolution_clock::now();
+
+				for (auto const& elem : rng2) {
+					if (rand() % 2 == 0) {
+						sum3 += elem;
+					}
+				}
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_REPLACE_IF_FOR:
@@ -244,6 +272,13 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 				auto rng1 = arr | ranges::views::reverse;
 				auto rng2 = rng1 | ranges::views::replace_if([](auto const& elem) {return elem == 2; }, 3);
 				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
+				end2 = std::chrono::high_resolution_clock::now();
+
+				for (auto const& elem : rng2) {
+					if (rand() % 2 == 0) {
+						sum3 += elem;
+					}
+				}
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_REMOVE_IF_FOR:
@@ -251,40 +286,81 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 				auto rng1 = arr | ranges::views::reverse;
 				auto rng2 = rng1 | ranges::views::remove_if([](auto const& elem) {return elem == 2; });
 				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
+				end2 = std::chrono::high_resolution_clock::now();
+
+				for (auto const& elem : rng2) {
+					if (rand() % 2 == 0) {
+						sum3 += elem;
+					}
+				}
 				break;
 			}
 			case ALGORITHM_NAME::FOR_EACH_TRANSFORM:
 			{
 				auto rng2 = arr | ranges::views::transform([](auto const& elem) {return elem * 2; });
 				hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) {return elem * 2; });
+				end2 = std::chrono::high_resolution_clock::now();
+
+				for (auto const& elem : rng2) {
+					if (rand() % 2 == 0) {
+						sum3 += elem;
+					}
+				}
 				break;
 			}
 			case ALGORITHM_NAME::REPLACE_IF_FOR:
 			{
 				auto rng2 = arr | ranges::views::replace_if([](auto const& elem) {return elem == 2; }, 3);
 				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
+				end2 = std::chrono::high_resolution_clock::now();
+
+				for (auto const& elem : rng2) {
+					if (rand() % 2 == 0) {
+						sum3 += elem;
+					}
+				}
 				break;
 			}
 			case ALGORITHM_NAME::REMOVE_IF_FOR:
 			{
 				auto rng2 = arr | ranges::views::remove_if([](auto const& elem) {return elem == 2; });
 				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
+				end2 = std::chrono::high_resolution_clock::now();
+
+				for (auto const& elem : rng2) {
+					if (rand() % 2 == 0) {
+						sum3 += elem;
+					}
+				}
 				break;
 			}
 			case ALGORITHM_NAME::UNIQUE_FOR:
 			{
-				auto rng1 = ranges::views::unique(arr);
-				hpx::ranges::for_each(hpx::execution::par, rng1, [](auto const& elem) { return elem * 2; });
+				auto rng2 = ranges::views::unique(arr);
+				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
+				end2 = std::chrono::high_resolution_clock::now();
+
+				for (auto const& elem : rng2) {
+					if (rand() % 2 == 0) {
+						sum3 += elem;
+					}
+				}
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_FOR:
 			{
-				auto rng1 = arr | ranges::views::reverse;
-				hpx::ranges::for_each(hpx::execution::par, rng1, [](auto const& elem) { return elem * 2; });
+				auto rng2 = arr | ranges::views::reverse;
+				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
+				end2 = std::chrono::high_resolution_clock::now();
+
+				for (auto const& elem : rng2) {
+					if (rand() % 2 == 0) {
+						sum3 += elem;
+					}
+				}
 				break;
 			}
 			}
-			auto end2 = std::chrono::high_resolution_clock::now();
 
 			std::chrono::duration<double> time_span2 =
 				std::chrono::duration_cast<std::chrono::duration<double>>(
@@ -299,9 +375,16 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 
 		data.push_back(std::array<double, 4>{(double)s, seqTime, parTime, rangesTime});
 		std::cout << "N : " << s << '\n';
+		std::cout << "sum1 : " << sum1 << '\n';
+		std::cout << "sum2 : " << sum2 << '\n';
+		std::cout << "sum3 : " << sum3 << '\n';
 		std::cout << "SEQ: " << seqTime << '\n';
 		std::cout << "PAR: " << parTime << '\n';
 		std::cout << "RANGES: " << rangesTime << "\n\n";
+
+		sum1 = 0;
+		sum2 = 0;
+		sum3 = 0;
 	}
 
 	std::ofstream outputFile;
