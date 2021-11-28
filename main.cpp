@@ -13,7 +13,9 @@
 #include <random>
 
 std::vector<int> original;
-std::size_t sum1 = 0, sum2 = 0, sum3 = 0;
+volatile std::size_t sum1 = 0;
+volatile std::size_t sum2 = 0;
+volatile std::size_t sum3 = 0;
 
 int hpx_main(hpx::program_options::variables_map& vm) {
 	unsigned int NUM_ITERATIONS = vm["num_iterations"].as<unsigned int>();
@@ -28,7 +30,7 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 
 	for (std::size_t s = start; s <= till; s *= 2)
 	{
-		std::vector<int> arr(s), res(s);
+		std::vector<int> arr(s), res(s), res1(s);
 		std::copy_n(original.begin(), s, arr.begin());
 
 		double seqTime = 0;
@@ -40,8 +42,8 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 			int sum = 0;
 			auto t1 = std::chrono::high_resolution_clock::now();
 
-			hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) {return elem * 2; });
-			hpx::transform(arr.begin(), arr.end(), res.begin(), [](auto const& elem) {return elem * 2; });
+			hpx::transform(arr.begin(), arr.end(), res1.begin(), [](auto const& elem) {return elem * 2; });
+			hpx::transform(res1.begin(), res1.end(), res.begin(), [](auto const& elem) {return elem * 2; });
 
 			auto end1 = std::chrono::high_resolution_clock::now();
 
@@ -60,14 +62,15 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 
 		std::copy_n(original.begin(), s, arr.begin());
 		res = std::vector<int>(s);
+		res1 = std::vector<int>(s);
 
 		for (int i = 0; i < NUM_ITERATIONS; i++)
 		{
 			int sum = 0;
 			auto t1 = std::chrono::high_resolution_clock::now();
 
-			hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) {return elem * 2; });
-			hpx::transform(hpx::execution::par, arr.begin(), arr.end(), res.begin(), [](auto const& elem) {return elem * 2; });
+			hpx::transform(hpx::execution::par, arr.begin(), arr.end(), res1.begin(), [](auto const& elem) {return elem * 2; });
+			hpx::transform(hpx::execution::par, res1.begin(), res1.end(), res.begin(), [](auto const& elem) {return elem * 2; });
 			
 			auto end1 = std::chrono::high_resolution_clock::now();
 
@@ -130,7 +133,7 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 	}
 
 	std::ofstream outputFile;
-	outputFile = std::ofstream("for_each_transform.csv");
+	outputFile = std::ofstream("transform_transform.csv");
 
 	for (auto& d : data)
 	{
