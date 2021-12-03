@@ -13,7 +13,7 @@
 #include <random>
 
 std::vector<int> original;
-std::size_t sum1 = 0, sum2 = 0, sum3 = 0;
+volatile std::size_t sum1 = 0, sum2 = 0, sum3 = 0;
 
 enum class ALGORITHM_NAME
 {
@@ -55,7 +55,7 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 
 	for (std::size_t s = start; s <= till; s *= 2)
 	{
-		std::vector<int> arr(s), res(s);
+		std::vector<int> arr(s), res(s), res1(s);
 		std::copy_n(original.begin(), s, arr.begin());
 
 		double seqTime = 0;
@@ -64,7 +64,6 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 
 		for (int i = 0; i < NUM_ITERATIONS; i++)
 		{
-			int sum = 0;
 			auto t1 = std::chrono::high_resolution_clock::now();
 
 			switch (algo)
@@ -73,67 +72,67 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 			{
 				auto iter = hpx::unique(arr.begin(), arr.end());
 				hpx::replace_if(arr.begin(), iter, [](auto const& elem) {return elem == 2; }, 3);
-				hpx::for_each(arr.begin(), iter, [](auto const& elem) { return elem * 2; });
+				hpx::transform(arr.begin(), iter, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::UNIQUE_REMOVE_IF_FOR:
 			{
 				auto iter = hpx::unique(arr.begin(), arr.end());
 				hpx::remove_if(arr.begin(), iter, [](auto const& elem) {return elem == 2; });
-				hpx::for_each(arr.begin(), iter, [](auto const& elem) { return elem * 2; });
+				hpx::transform(arr.begin(), iter, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_REPLACE_IF_FOR:
 			{
 				hpx::reverse(arr.begin(), arr.end());
 				hpx::replace_if(arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; }, 3);
-				hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+				hpx::transform(arr.begin(), arr.end(), res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_REMOVE_IF_FOR:
 			{
 				hpx::reverse(arr.begin(), arr.end());
 				hpx::remove_if(arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; });
-				hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+				hpx::transform(arr.begin(), arr.end(), res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::FOR_EACH_TRANSFORM:
 			{
-				hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) {return elem * 2; });
-				hpx::transform(arr.begin(), arr.end(), res.begin(), [](auto const& elem) {return elem * 2; });
+				hpx::transform(arr.begin(), arr.end(), res1.begin(), [](auto const& elem) {return elem * 2; });
+				hpx::transform(res1.begin(), res1.end(), res.begin(), [](auto const& elem) {return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REPLACE_IF_FOR:
 			{
 				hpx::replace_if(arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; }, 3);
-				hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+				hpx::transform(arr.begin(), arr.end(), res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REMOVE_IF_FOR:
 			{
 				hpx::remove_if(arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; });
-				hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+				hpx::transform(arr.begin(), arr.end(), res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::UNIQUE_FOR:
 			{
 				auto iter = hpx::unique(arr.begin(), arr.end());
-				hpx::for_each(arr.begin(), iter, [](auto const& elem) { return elem * 2; });
+				hpx::transform(arr.begin(), iter, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_FOR:
 			{
 				hpx::reverse(arr.begin(), arr.end());
-				hpx::for_each(arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+				hpx::transform(arr.begin(), arr.end(), res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			}
 
 			auto end1 = std::chrono::high_resolution_clock::now();
 
-			for (int i = 0; i < arr.size(); i++) {
+			for (int i = 0; i < res.size(); i++) {
 				if (rand() % 2 == 0) {
-					sum1 += arr[i];
+					sum1 += res[i];
 				}
 			}
 
@@ -149,7 +148,6 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 
 		for (int i = 0; i < NUM_ITERATIONS; i++)
 		{
-			int sum = 0;
 			auto t1 = std::chrono::high_resolution_clock::now();
 
 			switch (algo)
@@ -158,66 +156,66 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 			{
 				auto iter = hpx::unique(hpx::execution::par, arr.begin(), arr.end());
 				hpx::replace_if(hpx::execution::par, arr.begin(), iter, [](auto const& elem) {return elem == 2; }, 3);
-				hpx::for_each(hpx::execution::par, arr.begin(), iter, [](auto const& elem) { return elem * 2; });
+				hpx::transform(hpx::execution::par, arr.begin(), iter, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::UNIQUE_REMOVE_IF_FOR:
 			{
 				auto iter = hpx::unique(hpx::execution::par, arr.begin(), arr.end());
 				hpx::remove_if(hpx::execution::par, arr.begin(), iter, [](auto const& elem) {return elem == 2; });
-				hpx::for_each(hpx::execution::par, arr.begin(), iter, [](auto const& elem) { return elem * 2; });
+				hpx::transform(hpx::execution::par, arr.begin(), iter, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_REPLACE_IF_FOR:
 			{
 				hpx::reverse(hpx::execution::par, arr.begin(), arr.end());
 				hpx::replace_if(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; }, 3);
-				hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+				hpx::transform(hpx::execution::par, arr.begin(), arr.end(), res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_REMOVE_IF_FOR:
 			{
 				hpx::reverse(hpx::execution::par, arr.begin(), arr.end());
 				hpx::remove_if(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; });
-				hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+				hpx::transform(hpx::execution::par, arr.begin(), arr.end(), res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::FOR_EACH_TRANSFORM:
 			{
-				hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) {return elem * 2; });
-				hpx::transform(hpx::execution::par, arr.begin(), arr.end(), res.begin(), [](auto const& elem) {return elem * 2; });
+				hpx::transform(hpx::execution::par, arr.begin(), arr.end(), res1.begin(), [](auto const& elem) {return elem * 2; });
+				hpx::transform(hpx::execution::par, res1.begin(), res1.end(), res.begin(), [](auto const& elem) {return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REPLACE_IF_FOR:
 			{
 				hpx::replace_if(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; }, 3);
-				hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+				hpx::transform(hpx::execution::par, arr.begin(), arr.end(), res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REMOVE_IF_FOR:
 			{
 				hpx::remove_if(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) {return elem == 2; });
-				hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+				hpx::transform(hpx::execution::par, arr.begin(), arr.end(), res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::UNIQUE_FOR:
 			{
 				auto iter = hpx::unique(hpx::execution::par, arr.begin(), arr.end());
-				hpx::for_each(hpx::execution::par, arr.begin(), iter, [](auto const& elem) { return elem * 2; });
+				hpx::transform(hpx::execution::par, arr.begin(), iter, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_FOR:
 			{
 				hpx::reverse(hpx::execution::par, arr.begin(), arr.end());
-				hpx::for_each(hpx::execution::par, arr.begin(), arr.end(), [](auto const& elem) { return elem * 2; });
+				hpx::transform(hpx::execution::par, arr.begin(), arr.end(), res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			}
 			auto end1 = std::chrono::high_resolution_clock::now();
 
-			for (int i = 0; i < arr.size(); i++) {
+			for (int i = 0; i < res.size(); i++) {
 				if (rand() % 2 == 0) {
-					sum2 += arr[i];
+					sum2 += res[i];
 				}
 			}
 
@@ -233,7 +231,6 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 
 		for (int i = 0; i < NUM_ITERATIONS; i++)
 		{
-			int sum = 0;
 			auto t2 = std::chrono::high_resolution_clock::now();
 			std::chrono::time_point<std::chrono::high_resolution_clock> end2;
 
@@ -243,123 +240,67 @@ int hpx_main(hpx::program_options::variables_map& vm) {
 			{
 				auto rng1 = ranges::views::unique(arr);
 				auto rng2 = rng1 | ranges::views::replace_if([](auto const& elem) {return elem == 2; }, 3);
-				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
-				end2 = std::chrono::high_resolution_clock::now();
-
-				for (auto const& elem : rng2) {
-					if (rand() % 2 == 0) {
-						sum3 += elem;
-					}
-				}
+				hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::UNIQUE_REMOVE_IF_FOR:
 			{
 				auto rng1 = ranges::views::unique(arr);
 				auto rng2 = rng1 | ranges::views::remove_if([](auto const& elem) {return elem == 2; });
-				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
-				end2 = std::chrono::high_resolution_clock::now();
-
-				for (auto const& elem : rng2) {
-					if (rand() % 2 == 0) {
-						sum3 += elem;
-					}
-				}
+				hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_REPLACE_IF_FOR:
 			{
 				auto rng1 = arr | ranges::views::reverse;
 				auto rng2 = rng1 | ranges::views::replace_if([](auto const& elem) {return elem == 2; }, 3);
-				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
-				end2 = std::chrono::high_resolution_clock::now();
-
-				for (auto const& elem : rng2) {
-					if (rand() % 2 == 0) {
-						sum3 += elem;
-					}
-				}
+				hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_REMOVE_IF_FOR:
 			{
 				auto rng1 = arr | ranges::views::reverse;
 				auto rng2 = rng1 | ranges::views::remove_if([](auto const& elem) {return elem == 2; });
-				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
-				end2 = std::chrono::high_resolution_clock::now();
-
-				for (auto const& elem : rng2) {
-					if (rand() % 2 == 0) {
-						sum3 += elem;
-					}
-				}
+				hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::FOR_EACH_TRANSFORM:
 			{
 				auto rng2 = arr | ranges::views::transform([](auto const& elem) {return elem * 2; });
 				hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) {return elem * 2; });
-				end2 = std::chrono::high_resolution_clock::now();
-
-				for (auto const& elem : rng2) {
-					if (rand() % 2 == 0) {
-						sum3 += elem;
-					}
-				}
 				break;
 			}
 			case ALGORITHM_NAME::REPLACE_IF_FOR:
 			{
 				auto rng2 = arr | ranges::views::replace_if([](auto const& elem) {return elem == 2; }, 3);
-				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
-				end2 = std::chrono::high_resolution_clock::now();
-
-				for (auto const& elem : rng2) {
-					if (rand() % 2 == 0) {
-						sum3 += elem;
-					}
-				}
+				hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REMOVE_IF_FOR:
 			{
 				auto rng2 = arr | ranges::views::remove_if([](auto const& elem) {return elem == 2; });
-				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
-				end2 = std::chrono::high_resolution_clock::now();
-
-				for (auto const& elem : rng2) {
-					if (rand() % 2 == 0) {
-						sum3 += elem;
-					}
-				}
+				hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::UNIQUE_FOR:
 			{
 				auto rng2 = ranges::views::unique(arr);
-				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
-				end2 = std::chrono::high_resolution_clock::now();
-
-				for (auto const& elem : rng2) {
-					if (rand() % 2 == 0) {
-						sum3 += elem;
-					}
-				}
+				hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) { return elem * 2; });
 				break;
 			}
 			case ALGORITHM_NAME::REVERSE_FOR:
 			{
 				auto rng2 = arr | ranges::views::reverse;
-				hpx::ranges::for_each(hpx::execution::par, rng2, [](auto const& elem) { return elem * 2; });
-				end2 = std::chrono::high_resolution_clock::now();
-
-				for (auto const& elem : rng2) {
-					if (rand() % 2 == 0) {
-						sum3 += elem;
-					}
-				}
-				break;
+				hpx::ranges::transform(hpx::execution::par, rng2, res.begin(), [](auto const& elem) { return elem * 2; });
 			}
+			}
+
+			end2 = std::chrono::high_resolution_clock::now();
+
+			for (int i = 0; i < res.size(); i++) {
+				if (rand() % 2 == 0) {
+					sum3 += res[i];
+				}
 			}
 
 			std::chrono::duration<double> time_span2 =
